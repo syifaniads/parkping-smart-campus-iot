@@ -1,0 +1,9 @@
+{
+  "pk": "AREA#campus-a",
+  "sk": "SLOT#A-001",
+  "slot_id": "A-001",
+  "occupied": true,
+  "last_observed_at": "2026-01-01T08:00:00Z",
+  "device_id": "sensor-demo-001",
+  "device_status": "online"
+}
