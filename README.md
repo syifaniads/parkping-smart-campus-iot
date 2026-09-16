@@ -10,6 +10,7 @@
 ![IoT](https://img.shields.io/badge/IoT-Smart%20Parking-0f766e)
 ![MQTT](https://img.shields.io/badge/MQTT-Event%20Driven-660066)
 ![AWS](https://img.shields.io/badge/AWS-IoT%20Architecture-232f3e)
+![Validation](https://img.shields.io/badge/Contract-JSON%20Schema-2563eb)
 ![Leadership](https://img.shields.io/badge/Role-Group%20Lead-1d4ed8)
 
 ## Problem
@@ -62,6 +63,35 @@ flowchart LR
 | Live AWS deployment | **Not claimed as verified** | No retained AWS console/log/resource evidence provided |
 | End-to-end mobile application | **Not claimed as verified** | Presentation shows concept, not implementation proof |
 
+## Executable data-contract example
+
+The original presentation proves the **event-driven design**, but it does not preserve an exact historical production message schema. For portfolio review, this repository therefore includes an explicitly labeled **reference contract** that turns the documented MQTT → Lambda → DynamoDB flow into something inspectable and testable without pretending it was the original deployed payload.
+
+```json
+{
+  "schema_version": 1,
+  "device_id": "sensor-demo-001",
+  "parking_area": "campus-a",
+  "slot_id": "A-001",
+  "occupied": true,
+  "observed_at": "2026-01-01T08:00:00Z"
+}
+```
+
+The contract is defined in [`schemas/parking-event.schema.json`](schemas/parking-event.schema.json). A corresponding DynamoDB materialized-state example is stored in [`examples/dynamodb-item.example.json`](examples/dynamodb-item.example.json).
+
+[`scripts/validate_examples.py`](scripts/validate_examples.py) verifies that:
+
+- the MQTT example conforms to the versioned JSON Schema;
+- the DynamoDB partition/sort keys derive from parking-area and slot identity;
+- slot, device, occupancy, and observed timestamp remain consistent across ingestion and materialized state;
+- timestamps are timezone-aware; and
+- only expected device-status values are used.
+
+GitHub Actions runs this validation on pushes and pull requests via [`.github/workflows/contract-validation.yml`](.github/workflows/contract-validation.yml).
+
+> Passing this CI proves consistency of the **portfolio contract artifacts only**. It does not prove that physical sensors, AWS IoT Core, Lambda, DynamoDB, or the mobile application were deployed historically.
+
 ## Why MQTT fits this problem
 
 Parking sensors produce small state-change events rather than large request/response payloads. MQTT gives the design a lightweight publish/subscribe model where edge devices can publish occupancy events without being tightly coupled to the mobile application or persistence layer.
@@ -98,6 +128,8 @@ The presentation verifies the four-person Group 2 membership. The **Group Lead**
 - [Privacy](PRIVACY.md)
 - [Scalability](SCALABILITY.md)
 - [Validation plan](VALIDATION_PLAN.md)
+- [Reference event schema](schemas/parking-event.schema.json)
+- [Executable contract validator](scripts/validate_examples.py)
 - [Limitations](LIMITATIONS.md)
 - [Team attribution](TEAM_ATTRIBUTION.md)
 - [Source evidence](SOURCE_EVIDENCE.md)
